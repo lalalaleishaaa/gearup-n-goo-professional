@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GEARUP N GOO — Journey Intelligence Platform for India. Plan routes, discover heritage, meet local guides." />
+  <meta name="theme-color" content="#171717" />
+  <title>GEARUP N GOO — Your journey. Your interests. Your India.</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="journey_live.css" />
+  <link rel="stylesheet" href="heritage.css" />
+  <link rel="stylesheet" href="india.css" />
+  <link rel="stylesheet" href="professional.css" />
+</head>
+<body class="preload">
+
+<!-- ======================= NAVBAR ======================= -->
+<header class="nav" id="navbar">
+  <div class="nav__inner">
+    <a href="#/" class="brand" aria-label="GEARUP N GOO home">
+      <img class="brand__logo" src="assets/brand-logo-cropped.png" alt="GEARUP N GOO — Plan, Explore, Journey" />
+    </a>
+    <nav class="nav__links" aria-label="Main navigation">
+      <a href="#/" data-route="home">Home</a>
+      <a href="#/guides" data-route="guides">Guides</a>
+      <a href="#/history" data-route="history">History</a>
+      <div class="nav-search" id="navSearch">
+        <button class="nav-search__trigger" id="navSearchTrigger" aria-label="Search India's heritage">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.8" cy="6.8" r="5.1" stroke="currentColor" stroke-width="1.7"/><path d="M10.8 10.8 15 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span>Search India</span>
+        </button>
+        <div class="nav-search__field" id="navSearchField">
+          <input id="navSearchInput" type="text" placeholder="Search places, states, monuments, history..." autocomplete="off" aria-label="Search places, states, monuments, history" />
+          <button id="navSearchGo" aria-label="Search">Go</button>
+        </div>
+        <div class="ha-spanel" id="navSearchPanel" hidden></div>
+      </div>
+      <a href="#/planner" data-route="planner" class="nav__cta">Plan My Trip</a>
+      <div class="account-nav" id="accountNav"></div>
+    </nav>
+    <button class="nav-search__mobile" id="navSearchMobile" aria-label="Search">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.8" cy="6.8" r="5.1" stroke="currentColor" stroke-width="1.7"/><path d="M10.8 10.8 15 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    </button>
+    <button class="nav__hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav__mobile" id="navMobile" hidden>
+    <a href="#/" data-route="home">Home</a>
+    <a href="#/guides" data-route="guides">Guides</a>
+    <a href="#/history" data-route="history">History</a>
+    <a href="#/planner" data-route="planner" class="nav__cta nav__cta--mobile">Plan My Trip</a>
+  </div>
+</header>
+
+<!-- ======================= PASSPORT DRAWER ======================= -->
+<aside class="passport" id="passportDrawer" aria-label="Heritage Passport" hidden>
+  <div class="passport__header">
+    <h3>My Heritage Passport</h3>
+    <button class="icon-btn" id="passportClose" aria-label="Close passport">✕</button>
+  </div>
+  <div class="passport__sub">Places you've discovered. Dynasties you've met.</div>
+  <div class="passport__stats">
+    <div><strong id="psVisited">0</strong><span>Visited</span></div>
+    <div><strong id="psDynasties">0</strong><span>Dynasties</span></div>
+    <div><strong id="psUnesco">0</strong><span>UNESCO</span></div>
+  </div>
+  <ul class="passport__list" id="passportList"></ul>
+</aside>
+<button class="passport-fab" id="passportFab" aria-label="Open heritage passport">
+  <span class="passport-fab__icon">🪪</span>
+  <span>Passport</span>
+</button>
+
+<main id="app" class="app">
+  <!-- Views are injected here by app.js based on the route. -->
+</main>
+
+<!-- ======================= PLANNER WIZARD MODAL (overlay) ======================= -->
+<!-- We render wizard as a standalone route (#/planner) instead of a modal, to keep it
+     accessible. The overlay modal class below is used when opening the wizard from
+     the dashboard's "edit trip" action, where we overlay it above the journey.  -->
+<div class="wizard-overlay" id="wizardOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
+  <div class="wizard-overlay__panel" id="wizardPanel"></div>
+</div>
+
+<!-- ======================= JOURNEY GENERATION LOADING SCREEN ======================= -->
+<div class="gen-loader" id="genLoader" hidden>
+  <div class="gen-loader__inner">
+    <section class="journey-preview" id="journeyPreview" aria-live="polite"></section>
+    <section class="gen-analysis" id="genAnalysis" hidden aria-live="polite">
+      <div class="gen-loader__bar"><span id="genBar"></span></div>
+      <ul id="genSteps" class="gen-loader__steps"></ul>
+    </section>
+  </div>
+</div>
+
+<!-- ======================= ACCOUNT MODAL ======================= -->
+<div class="account-modal" id="accountModal" hidden role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+  <div class="account-modal__backdrop" data-account-close></div>
+  <section class="account-modal__panel">
+    <button class="account-modal__close" data-account-close aria-label="Close account dialog">✕</button>
+    <div class="account-modal__brand"><img src="assets/brand-logo-cropped.png" alt="GEARUP N GOO" /></div>
+    <h2 id="accountTitle">Welcome back</h2>
+    <p id="accountSub">Sign in to save journeys and keep your Heritage Passport with you.</p>
+    <div class="account-tabs" role="tablist"><button class="active" data-account-mode="signin">Sign in</button><button data-account-mode="signup">Sign up</button></div>
+    <form id="accountForm" novalidate>
+      <label id="accountNameField" hidden>Full name<input id="accountName" type="text" autocomplete="name" placeholder="Your name" /></label>
+      <label>Email<input id="accountEmail" type="email" autocomplete="email" placeholder="you@example.com" required /></label>
+      <label>Password<input id="accountPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required minlength="6" /></label>
+      <button class="account-submit" type="submit">Sign in</button>
+      <p class="account-note">This demo stores only your local session on this device. Connect a secure authentication provider before production.</p>
+    </form>
+  </section>
+</div>
+
+<!-- ======================= TOASTS ======================= -->
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- ======================= FOOTER ======================= -->
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <div class="brand brand--footer">
+        <img class="brand__logo" src="assets/brand-logo-cropped.png" alt="GEARUP N GOO — Plan, Explore, Journey" />
+      </div>
+      <p class="footer__tag">Your journey. Your interests. Your India.</p>
+    </div>
+    <div class="footer__cols">
+      <div>
+        <h5>Platform</h5>
+        <a href="#/planner">Plan My Trip</a>
+        <a href="#/history">Heritage</a>
+        <a href="#/guides">Guides</a>
+      </div>
+      <div>
+        <h5>Experience</h5>
+        <a href="#/destination/hampi">Hampi</a>
+        <a href="#/destination/belur">Belur</a>
+        <a href="#/destination/halebidu">Halebidu</a>
+        <a href="#/destination/badami">Badami</a>
+      </div>
+      <div>
+        <h5>Data</h5>
+        <span>Sources: ASI, UNESCO, KSTDC</span>
+        <span>Demo dataset — v1.0</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer__fine">© GEARUP N GOO — Travel. Discover. Understand.</div>
+</footer>
+
+<!-- ======================= SCRIPTS ======================= -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="data.js"></script>
+<script src="intel.js"></script>
+<script src="districts.js"></script>
+<script src="india-places.js"></script>
+<script src="india-destinations.js"></script>
+<script src="heritage-data-1.js"></script>
+<script src="heritage-data-2.js"></script>
+<script src="heritage-data-3.js"></script>
+<script src="heritage.js"></script>
+<script src="journey-live.js"></script>
+<script src="app.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a334305bd92afc8b',t:'MTc4ODA5NzAzMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
